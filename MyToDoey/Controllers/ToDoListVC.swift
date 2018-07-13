@@ -9,12 +9,15 @@
 import UIKit
 
 class ToDoListVC: UITableViewController {
-
+    
     var itemArray = [Item]()
+    
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        print(dataFilePath!)
+        
         let newItem = Item()
         newItem.title = "Call to order contacts"
         itemArray.append(newItem)
@@ -44,6 +47,7 @@ class ToDoListVC: UITableViewController {
         
         cell.textLabel?.text = item.title
 
+        
         //value = condition ? valueIfTrue : valueIfFalse
         cell.accessoryType = item.done ? .checkmark : .none
         
@@ -55,11 +59,13 @@ class ToDoListVC: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        tableView.reloadData()
-        
+        saveItem()
+
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
+    
+    
     
     //MARK - Add New Items
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -69,24 +75,46 @@ class ToDoListVC: UITableViewController {
         
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             //what will happen once the user clicks the Add Item button on our UIAlert
-            print("success")
           
             let newItem = Item()
+            
             newItem.title = textField.text!
+            
             self.itemArray.append(newItem)
             
-            self.tableView.reloadData()
-
+            self.saveItem()
+            
         }
+        
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create New Item"
             textField = alertTextField
             //print(alertTextField)
         }
         alert.addAction(action)
+        
     present(alert, animated: true, completion: nil)
         
     }
     
+   //MARK - Model Manipulation Methods
+    func saveItem() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            
+            let data = try encoder.encode(self.itemArray)
+            
+            try data.write(to: self.dataFilePath!)
+            
+        } catch {
+            
+            print("Error encoding Item Array \(error)")
+        }
+        
+        self.tableView.reloadData()
+
+    }
+  
 }
 
